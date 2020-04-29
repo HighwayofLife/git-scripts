@@ -1,0 +1,66 @@
+#!/bin/sh
+
+set -e
+
+function usage() {
+  bold=$(tput bold)
+  normal=$(tput sgr0)
+  cat << EOF
+
+${bold}NAME${normal}
+       git-merge-pr - Merge a Pull Request into the master branch
+
+${bold}SYNOPSIS${normal}
+       git merge-pr <PR-NUMBER>
+
+EOF
+}
+
+# actually parse the options and do stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+    ;;
+    *)
+      pullRequest=$1
+    ;;
+  esac
+  shift
+done
+
+
+if [ -z "$pullRequest" ]; then
+  echo "Error: No pull request number given"
+  usage
+  hub pr list -o "updated" -L 10
+  exit 1
+fi
+
+currentBranch=$(git rev-parse --abbrev-ref HEAD)
+
+# Checkout the pull request / branch
+hub pr checkout ${pullRequest}
+
+pullRequestBranch=$(git rev-parse --abbrev-ref HEAD)
+upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+
+hub sync
+git checkout master
+git merge --no-ff --no-edit ${pullRequestBranch}
+git push origin master
+
+# Delete the pull request branch locally
+git branch -d ${pullRequestBranch}
+
+# Delete the remote branch if it lives in origin
+if [ "${upstream}" == "origin" ]; then
+  git push ${upstream} --delete ${pullRequestBranch}
+fi
+
+# Checkout the original working branch if it wasn't the PR branch
+if [ "${currentBranch}" != "${pullRequestBranch}" ]; then
+  git checkout ${currentBranch}
+fi
+
