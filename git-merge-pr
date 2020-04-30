@@ -43,7 +43,7 @@ currentBranch=$(git rev-parse --abbrev-ref HEAD)
 # Checkout the pull request / branch
 hub pr checkout ${pullRequest}
 
-pullRequestTitle=$(git pr show -f "%i: '%t'" ${pullRequest})
+pullRequestTitle=$(hub pr show -f "%i: '%t'" ${pullRequest})
 pullRequestBranch=$(git rev-parse --abbrev-ref HEAD)
 upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
 
