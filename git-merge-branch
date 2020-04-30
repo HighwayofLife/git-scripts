@@ -1,0 +1,57 @@
+#!/bin/sh
+
+set -e
+
+function usage() {
+  bold=$(tput bold)
+  normal=$(tput sgr0)
+  cat << EOF
+
+${bold}NAME${normal}
+       git-merge-branch - Merge the current branch into the master branch
+
+${bold}SYNOPSIS${normal}
+       git merge-branch
+
+EOF
+}
+
+# actually parse the options and do stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+    ;;
+    *) ;;
+  esac
+  shift
+done
+
+currentBranch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "${currentBranch}" == "master" ]; then
+  echo "Error: Branch currently set to master"
+  usage
+fi
+
+upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+
+echo '[INFO] Syncing remotes and branches'
+hub sync
+echo '[INFO] git checkout master'
+git checkout master
+echo "[INFO] Merge branch: ${currentBranch}"
+git merge --no-ff --no-edit ${currentBranch}
+git push origin master
+
+echo "[INFO] Delete local and remote branches"
+# Delete the pull request branch locally
+git branch -d ${currentBranch}
+
+# Delete the remote branch if it lives in origin
+if [ "${upstream}" == "origin" ]; then
+  git push ${upstream} --delete ${currentBranch}
+fi
+
+
