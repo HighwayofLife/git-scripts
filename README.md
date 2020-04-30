@@ -27,6 +27,18 @@ Commands
 * `git merge-branch` - Pull-Request Merge current Branch to Master
 * `git create-pr` - Shortcut to push branch and create a pull-request
 
+Helpful Aliases
+---------------
+Add the following aliases to `.bashrc`, `.bash_profile`, or `.zshrc`
+
+```sh
+alias pr="git create-pr"
+alias push="git push-branch"
+alias merge="git merge-branch"
+alias pr-merge="git merge-pr"
+```
+
+
 Contributors
 ------------
 
