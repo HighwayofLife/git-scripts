@@ -25,6 +25,7 @@ Commands
 * `git activity` - Pretty-print log activity across all branches.
 * `git merge-pr <PR-NUMBER>` - Merge a desired Pull Request to Master
 * `git merge-branch` - Pull-Request Merge current Branch to Master
+* `git create-pr` - Shortcut to push branch and create a pull-request
 
 Contributors
 ------------
