@@ -29,14 +29,14 @@ while [[ $1 = -?* ]]; do
 done
 
 branch=$(git rev-parse --abbrev-ref HEAD)
-upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+#upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
 
-if [[ $? == 0 ]]; then
-  echo "branch '$branch' tracks '$upstream'"
-  git push
-else
-  echo "branch '$branch' has no upstream configured"
+#if [[ $? == 0 ]]; then
+#  echo "branch '$branch' tracks '$upstream'"
+#  git push
+#else
+#  echo "branch '$branch' has no upstream configured"
   git push -u origin $branch
-fi
+#fi
 
 

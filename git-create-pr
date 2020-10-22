@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e
+set -ex
 
 function usage() {
   bold=$(tput bold)
@@ -28,16 +28,19 @@ while [[ $1 = -?* ]]; do
   shift
 done
 
+#echo "branch..."
 branch=$(git rev-parse --abbrev-ref HEAD)
-upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+#echo "upstream..."
+#upstream=$( git rev-parse --abbrev-ref @{upstream} || "" )
 
-if [[ $? == 0 ]]; then
-  echo "branch '$branch' tracks '$upstream'"
-  git push
-else
-  echo "branch '$branch' has no upstream configured"
+#echo "does it track?"
+#if [[ "${upstream}" != "" ]]; then
+  #echo "branch '$branch' tracks '$upstream'"
+  #git push
+#else
+  #echo "branch '$branch' has no upstream configured"
   git push -u origin $branch
-fi
+#fi
 
 hub pull-request
 
