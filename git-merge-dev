@@ -46,8 +46,8 @@ if [ "${currentBranch}" == "${defaultBranch}" ]; then
 fi
 
 upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null | awk -F'/' '{print $1}')
-echo "[INFO] pushing ${defaultBranch} to ${upstream}"
-git push $upstream $defaultBranch
+echo "[INFO] pushing ${currentBranch} to ${upstream}"
+git push $upstream $currentBranch
 
 echo '[INFO] Syncing remotes and branches'
 hub sync
@@ -55,7 +55,7 @@ echo "[INFO] git checkout ${targetBranch}"
 git checkout ${targetBranch}
 echo "[INFO] Merge branch: ${currentBranch} into ${targetBranch}"
 git merge --no-ff --no-edit ${currentBranch}
-git push $upstream $defaultBranch
+git push $upstream $targetBranch
 
 echo "[INFO] Checkout original branch: $currentBranch"
 git checkout $currentBranch
