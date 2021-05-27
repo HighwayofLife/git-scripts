@@ -46,6 +46,10 @@ if [ "${currentBranch}" == "${defaultBranch}" ]; then
 fi
 
 upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null | awk -F'/' '{print $1}')
+if [ -z "${upstream}" ]; then
+  upstream=origin
+fi
+
 echo "[INFO] pushing ${currentBranch} to ${upstream}"
 git push $upstream $currentBranch
 
