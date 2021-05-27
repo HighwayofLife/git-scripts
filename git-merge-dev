@@ -1,0 +1,61 @@
+#!/bin/sh
+
+set -e
+
+function usage() {
+  bold=$(tput bold)
+  normal=$(tput sgr0)
+  cat << EOF
+
+${bold}NAME${normal}
+       git-merge-dev - Merge the current branch into a development or integration branch
+
+${bold}SYNOPSIS${normal}
+       git merge-dev <TARGET-BRANCH>
+
+EOF
+}
+
+# actually parse the options and do stuff
+while [[ $1 = -?* ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+    ;;
+    *) ;;
+  esac
+  shift
+done
+
+targetBranch=$1
+
+if [ -z "${targetBranch}" ]; then
+  echo "Error: Must specify a target branch"
+  usage
+  exit 1
+fi
+
+currentBranch=$(git rev-parse --abbrev-ref HEAD)
+defaultBranch=$(git symbolic-ref refs/remotes/origin/HEAD | cut -d "/" -f 4)
+
+if [ "${currentBranch}" == "${defaultBranch}" ]; then
+  echo "Error: Branch currently set to Default Branch: ${defaultBranch}"
+  usage
+  exit 1
+fi
+
+upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null | awk -F'/' '{print $1}')
+echo "[INFO] pushing ${defaultBranch} to ${upstream}"
+git push $upstream $defaultBranch
+
+echo '[INFO] Syncing remotes and branches'
+hub sync
+echo "[INFO] git checkout ${targetBranch}"
+git checkout ${targetBranch}
+echo "[INFO] Merge branch: ${currentBranch} into ${targetBranch}"
+git merge --no-ff --no-edit ${currentBranch}
+git push $upstream $defaultBranch
+
+echo "[INFO] Checkout original branch: $currentBranch"
+git checkout $currentBranch
