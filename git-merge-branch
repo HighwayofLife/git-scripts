@@ -29,9 +29,10 @@ while [[ $1 = -?* ]]; do
 done
 
 currentBranch=$(git rev-parse --abbrev-ref HEAD)
+defaultBranch=$(git symbolic-ref refs/remotes/origin/HEAD | cut -d "/" -f 4)
 
-if [ "${currentBranch}" == "master" ]; then
-  echo "Error: Branch currently set to master"
+if [ "${currentBranch}" == "$defaultBranch" ]; then
+  echo "Error: Branch currently set to Default Branch: $defaultBranch"
   usage
 fi
 
@@ -39,15 +40,15 @@ upstream=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
 
 echo '[INFO] Syncing remotes and branches'
 hub sync
-echo '[INFO] git checkout master'
-git checkout master
+echo "[INFO] git checkout $defaultBranch"
+git checkout $defaultBranch
 echo "[INFO] Merge branch: ${currentBranch}"
 git merge --no-ff --no-edit ${currentBranch}
-git push origin master
+git push $upstream $defaultBranch
 
-echo "[INFO] Delete local and remote branch from '${upstream}'"
+echo "[INFO] Delete local and remote branch '$currentBranch' from '${upstream}'"
 # Delete the remote branch if it lives in origin
-git push --delete origin ${currentBranch}
+git push --delete $upstream ${currentBranch}
 
 # Delete the pull request branch locally
 git branch -d ${currentBranch}
