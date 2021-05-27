@@ -30,7 +30,7 @@ done
 
 #echo "branch..."
 branch=$(git rev-parse --abbrev-ref HEAD)
-default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | cut -d "/" -f 4)
+defaultBranch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
 #echo "upstream..."
 #upstream=$( git rev-parse --abbrev-ref @{upstream} || "" )
 
@@ -43,5 +43,5 @@ default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | cut -d "/" -f 4)
   git push -u origin $branch
 #fi
 
-hub pull-request -b $default_branch
+hub pull-request -b $defaultBranch
 

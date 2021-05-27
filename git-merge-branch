@@ -29,7 +29,7 @@ while [[ $1 = -?* ]]; do
 done
 
 currentBranch=$(git rev-parse --abbrev-ref HEAD)
-defaultBranch=$(git symbolic-ref refs/remotes/origin/HEAD | cut -d "/" -f 4)
+defaultBranch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
 
 if [ "${currentBranch}" == "$defaultBranch" ]; then
   echo "Error: Branch currently set to Default Branch: $defaultBranch"
