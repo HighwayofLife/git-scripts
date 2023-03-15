@@ -13,6 +13,19 @@ ${bold}NAME${normal}
 ${bold}SYNOPSIS${normal}
        git create-pr
 
+${bold}Usage: git create-pr [--help]${normal}
+
+Create a pull request for the current branch in the terminal.
+
+${bold}Options:${normal}
+  --help    Display this help message and exit.
+
+This script performs the following actions:
+1. Ensures the current branch is up-to-date with the upstream default branch (target branch).
+2. Automatically determines the name of the remote (e.g., "origin").
+3. Automatically determines the remote default branch (target branch) for which to create the pull request.
+4. Uses the first commit on the branch as the pull request title and description without opening an editor.
+
 EOF
 }
 
@@ -28,20 +41,49 @@ while [[ $1 = -?* ]]; do
   shift
 done
 
-#echo "branch..."
-branch=$(git rev-parse --abbrev-ref HEAD)
-defaultBranch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
-#echo "upstream..."
-#upstream=$( git rev-parse --abbrev-ref @{upstream} || "" )
+# Check if hub is installed
+if ! command -v hub >/dev/null 2>&1; then
+    echo "Error: 'hub' command not found. Please install 'hub' first."
+    exit 1
+fi
 
-#echo "does it track?"
-#if [[ "${upstream}" != "" ]]; then
-  #echo "branch '$branch' tracks '$upstream'"
-  #git push
-#else
-  #echo "branch '$branch' has no upstream configured"
-  git push -u origin $branch
-#fi
+# Get the current branch name
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
-hub pull-request -b $defaultBranch
+remote_name="origin"
+
+# Get the remote URL
+remote_url="$(git remote get-url "$remote_name")"
+
+# Regex pattern to extract org/repo from a URL such as git@example.com:org/repo.git
+pattern='[.:\/]([[:alnum:]_-]+\/[[:alnum:]_-]+)\.git'
+
+# Extract org/repo using regex
+if [[ $remote_url =~ $pattern ]]; then
+  upstream_repo="${BASH_REMATCH[1]}"
+else
+  # exit on error
+  echo "Error: Could not extract org/repo from remote URL: $remote_url"
+  exit 1
+fi
+
+# Get the remote default branch (target branch)
+upstream_default_branch="$(hub api "repos/$upstream_repo" | jq -r '.default_branch')"
+
+# Exit with error if upstream_default_branch is empty
+if [ -z "$upstream_default_branch" ]; then
+  echo "Error: Could not get the default branch for $upstream_repo"
+  exit 1
+fi
+
+# Ensure the current branch is up-to-date with the upstream default branch (target branch)
+git fetch "$remote_name" "$upstream_default_branch"
+git rebase "$remote_name/$upstream_default_branch"
+
+# Push the current branch to the remote repository
+git push -u "$remote_name" "$current_branch"
+
+# Create a pull request using 'hub pull-request' against the remote default branch
+hub pull-request --no-edit -b "$upstream_default_branch"
+
 
